@@ -48,21 +48,16 @@
 
     <main class="flex-1 flex flex-col lg:flex-row p-4 gap-4 max-w-[1600px] mx-auto w-full">
         
-        <!-- Left: Video & Canvas Area -->
         <div class="flex-1 flex flex-col gap-4">
             
             <div class="relative bg-black rounded-xl overflow-hidden shadow-2xl border-2 border-slate-700 aspect-video flex items-center justify-center group" id="videoContainer">
                 
-                <!-- Video Element (Hidden normally, draws to canvas) -->
                 <video id="sourceVideo" class="hidden" playsinline></video>
                 
-                <!-- Canvas Element (Where the magic happens) -->
                 <canvas id="varCanvas" class="w-full h-full cursor-crosshair"></canvas>
                 
-                <!-- Scanlines effect -->
                 <div class="tv-scanlines"></div>
 
-                <!-- Upload Overlay (Visible when no video) -->
                 <div id="uploadOverlay" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 z-20">
                     <label for="videoUpload" class="cursor-pointer group flex flex-col items-center p-8 border-4 border-dashed border-slate-500 rounded-2xl hover:border-red-500 transition-colors bg-slate-800 hover:bg-slate-700">
                         <svg class="w-16 h-16 text-slate-400 group-hover:text-red-400 mb-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
@@ -79,9 +74,7 @@
                     
                     <div class="flex items-center gap-2">
                         <button id="btnPlayPause" class="bg-red-600 hover:bg-red-500 text-white rounded-lg p-3 transition-colors disabled:opacity-50">
-                            <!-- Play Icon -->
                             <svg id="iconPlay" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
-                            <!-- Pause Icon (hidden by default) -->
                             <svg id="iconPause" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
                         </button>
                         
@@ -92,7 +85,6 @@
                         </div>
                     </div>
 
-                    <!-- Progress Bar -->
                     <div class="flex-1 mx-4 flex items-center gap-3">
                         <span id="timeCurrent" class="text-sm font-mono text-slate-400">00:00.00</span>
                         <input type="range" id="videoProgress" value="0" min="0" max="100" step="0.1" class="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer">
@@ -103,7 +95,6 @@
             </div>
         </div>
 
-        <!-- Right: VAR Tools -->
         <div class="w-full lg:w-80 bg-slate-800 rounded-xl border border-slate-700 shadow-xl flex flex-col overflow-hidden max-h-[85vh]">
             <div class="bg-slate-900 p-4 border-b border-slate-700">
                 <h2 class="text-lg font-black uppercase tracking-wide text-slate-200">Herramientas VAR</h2>
@@ -111,7 +102,6 @@
             
             <div class="p-4 flex flex-col gap-5 overflow-y-auto">
                 
-                <!-- Tool Selector -->
                 <div>
                     <label class="text-xs text-slate-400 uppercase font-bold mb-2 block">Trazado de Líneas</label>
                     <div class="grid grid-cols-2 gap-2">
@@ -131,15 +121,17 @@
                             <svg class="w-6 h-6 text-green-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                             <span class="text-xs font-bold">Lápiz Libre</span>
                         </button>
-                        <!-- BOTÓN DE MOVER/PANEO -->
-                        <button class="tool-btn flex flex-col items-center p-3 rounded-lg border-2 border-slate-600 hover:border-white hover:bg-slate-700 text-slate-300 transition-all col-span-2" data-tool="pan-white">
+                        <button class="tool-btn flex flex-col items-center p-3 rounded-lg border-2 border-slate-600 hover:border-white hover:bg-slate-700 text-slate-300 transition-all" data-tool="pan-white">
                             <svg class="w-6 h-6 text-white mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"></path></svg>
-                            <span class="text-xs font-bold">Mover Cámara (Mano)</span>
+                            <span class="text-xs font-bold">Mover Cám.</span>
+                        </button>
+                        <button class="tool-btn flex flex-col items-center p-3 rounded-lg border-2 border-slate-600 hover:border-purple-400 hover:bg-purple-900/20 text-slate-300 transition-all" data-tool="select-purple">
+                            <svg class="w-6 h-6 text-purple-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
+                            <span class="text-xs font-bold">Dedo (Mover)</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Control de Zoom (Ahora hasta 10, para los topos) -->
                 <div class="bg-slate-900/50 p-4 rounded-lg border border-slate-700">
                     <div class="flex justify-between items-center mb-3">
                         <label class="text-xs text-slate-400 uppercase font-bold">Zoom (Lupa)</label>
@@ -154,7 +146,6 @@
                     </div>
                 </div>
 
-                <!-- Nuevo: Marcadores de tiempo (Para que no te pierdas) -->
                 <div class="bg-slate-900/50 p-4 rounded-lg border border-slate-700">
                     <div class="flex justify-between items-center mb-3">
                         <label class="text-xs text-slate-400 uppercase font-bold">Marcadores</label>
@@ -165,16 +156,15 @@
                     </div>
                 </div>
 
-                <!-- Settings -->
                 <div class="bg-slate-900/50 p-4 rounded-lg border border-slate-700">
                     <label class="text-xs text-slate-400 uppercase font-bold mb-3 block">Ajustes de Trazo</label>
                     
                     <div class="mb-4">
                         <div class="flex justify-between text-xs mb-1">
                             <span>Grosor de Línea</span>
-                            <span id="lblThickness">4px</span>
+                            <span id="lblThickness">5px</span>
                         </div>
-                        <input type="range" id="toolThickness" value="4" min="1" max="20" class="w-full h-1 bg-slate-600 rounded appearance-none">
+                        <input type="range" id="toolThickness" value="5" min="1" max="20" class="w-full h-1 bg-slate-600 rounded appearance-none">
                     </div>
 
                     <div>
@@ -186,7 +176,6 @@
                     </div>
                 </div>
 
-                <!-- Actions -->
                 <div>
                     <label class="text-xs text-slate-400 uppercase font-bold mb-2 block">Acciones</label>
                     <div class="flex gap-2">
@@ -210,7 +199,6 @@
 
     </main>
 
-    <!-- HBR Error Modal -->
     <div id="hbrModal" class="fixed inset-0 bg-black/90 z-50 hidden flex-col items-center justify-center p-4">
         <div class="bg-slate-800 border-4 border-red-600 rounded-2xl p-8 max-w-md text-center shadow-2xl relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-2 bg-red-600 animate-pulse"></div>
@@ -261,8 +249,8 @@
         let timeMarkers = [];
 
         // State
-        let currentTool = 'line-red'; // line-red, line-blue, arrow-yellow, free-green, pan-white
-        let currentThickness = 4;
+        let currentTool = 'line-red'; // line-red, line-blue, arrow-yellow, free-green, pan-white, select-purple
+        let currentThickness = 5;
         let currentOpacity = 0.8;
         
         // Zoom & Pan State
@@ -272,11 +260,16 @@
         let isPanning = false;
         let startPanX = 0;
         let startPanY = 0;
+
+        // Dedo (Mover) State
+        let isDraggingShape = false;
+        let draggedShapeIndex = -1;
+        let lastDragPos = {x: 0, y: 0};
         
-        let drawings = []; // Array of drawn objects
+        let drawings = []; 
         let isDrawing = false;
         let startPos = {x: 0, y: 0};
-        let currentPath = []; // For free draw
+        let currentPath = [];
 
         let animationFrameId = null;
 
@@ -285,11 +278,10 @@
             const file = e.target.files[0];
             if (!file) return;
 
-            // Check if HBR
             if (file.name.toLowerCase().endsWith('.hbr')) {
                 hbrModal.classList.remove('hidden');
                 hbrModal.classList.add('flex');
-                videoUpload.value = ''; // reset
+                videoUpload.value = ''; 
                 return;
             }
 
@@ -297,7 +289,6 @@
             video.src = url;
             uploadOverlay.classList.add('hidden');
             
-            // Enable controls
             btnPlayPause.disabled = false;
             btnFrameFwd.disabled = false;
             btnFrameBack.disabled = false;
@@ -310,7 +301,6 @@
 
         // --- Video Setup & Render Loop ---
         video.addEventListener('loadedmetadata', () => {
-            // Match canvas size to internal video resolution for crisp drawing
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             timeTotal.textContent = formatTime(video.duration);
@@ -326,24 +316,19 @@
             return `${m}:${s}.${ms}`;
         }
 
-        // The main render loop
         function drawLoop() {
-            // Clear canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // 1. Draw Video Frame
             if(video.videoWidth > 0) {
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             }
 
-            // 2. Draw Committed Drawings
             drawings.forEach(d => renderShape(d));
 
-            // 3. Draw Current Tool Preview (if actively drawing)
             if (isDrawing) {
                 renderShape({
                     tool: currentTool,
-                    points: currentPath, // for free draw
+                    points: currentPath,
                     startX: startPos.x,
                     startY: startPos.y,
                     endX: currentMousePos.x,
@@ -353,7 +338,6 @@
                 });
             }
 
-            // Update progress UI if playing
             if (!video.paused) {
                 videoProgress.value = video.currentTime;
                 timeCurrent.textContent = formatTime(video.currentTime);
@@ -379,11 +363,10 @@
             iconPlay.classList.remove('hidden');
         });
 
-        // Frame by frame (approx 1/60th of a second for 60fps)
         const frameStep = 1 / 60; 
         
         btnFrameFwd.addEventListener('click', () => {
-            if(!video.paused) btnPlayPause.click(); // Pause if playing
+            if(!video.paused) btnPlayPause.click(); 
             video.currentTime = Math.min(video.duration, video.currentTime + frameStep);
             updateProgressUI();
         });
@@ -403,41 +386,40 @@
             videoProgress.value = video.currentTime;
             timeCurrent.textContent = formatTime(video.currentTime);
         }
-
         
         // Tool Selection
         toolBtns.forEach(btn => {
             btn.addEventListener('click', () => {
                 toolBtns.forEach(b => {
-                    b.classList.remove('active', 'border-red-500', 'border-blue-500', 'border-yellow-400', 'border-green-400', 'border-white', 'bg-red-900/20', 'bg-blue-900/20', 'bg-yellow-900/20', 'bg-green-900/20', 'bg-slate-700');
+                    b.classList.remove('active', 'border-red-500', 'border-blue-500', 'border-yellow-400', 'border-green-400', 'border-white', 'border-purple-400', 'bg-red-900/20', 'bg-blue-900/20', 'bg-yellow-900/20', 'bg-green-900/20', 'bg-slate-700', 'bg-purple-900/20');
                     b.classList.add('border-slate-600');
                 });
                 
                 currentTool = btn.dataset.tool;
                 
-                // Styling active button dynamically
                 btn.classList.remove('border-slate-600');
                 if(currentTool.includes('red')) btn.classList.add('border-red-500', 'bg-red-900/20');
                 if(currentTool.includes('blue')) btn.classList.add('border-blue-500', 'bg-blue-900/20');
                 if(currentTool.includes('yellow')) btn.classList.add('border-yellow-400', 'bg-yellow-900/20');
                 if(currentTool.includes('green')) btn.classList.add('border-green-400', 'bg-green-900/20');
                 if(currentTool.includes('white')) btn.classList.add('border-white', 'bg-slate-700');
+                if(currentTool.includes('purple')) btn.classList.add('border-purple-400', 'bg-purple-900/20');
 
-                // Update cursor
                 if(currentTool === 'pan-white') {
-                    canvas.classList.remove('cursor-crosshair');
+                    canvas.classList.remove('cursor-crosshair', 'cursor-pointer');
                     canvas.classList.add('cursor-grab');
+                } else if (currentTool === 'select-purple') {
+                    canvas.classList.remove('cursor-crosshair', 'cursor-grab', 'cursor-grabbing');
+                    canvas.classList.add('cursor-pointer');
                 } else {
-                    canvas.classList.remove('cursor-grab', 'cursor-grabbing');
+                    canvas.classList.remove('cursor-grab', 'cursor-grabbing', 'cursor-pointer');
                     canvas.classList.add('cursor-crosshair');
                 }
             });
         });
 
-        // Zoom Listeners (Ahora te deja meterle x10 topo)
         function updateTransform() {
             canvas.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
-            // Maintain sharp edges
             canvas.style.transformOrigin = 'center center';
             canvas.style.willChange = 'transform';
         }
@@ -457,14 +439,10 @@
             updateTransform();
         });
 
-        // --- SISTEMA DE MARCADORES (Para el desmemoriado) ---
         btnAddMarker.addEventListener('click', () => {
-            if(!video.src) return; // Si no cargó video no pasa naranja
-            
+            if(!video.src) return; 
             const time = video.currentTime;
             timeMarkers.push(time);
-            
-            // Ordenar de menor a mayor para que quede prolijo
             timeMarkers.sort((a, b) => a - b);
             renderMarkersUI();
         });
@@ -487,11 +465,10 @@
                     <span class="text-xs font-mono text-red-400 group-hover:text-red-300">${formatTime(time)}</span>
                 `;
                 
-                // Al hacer click, pum, viajamos en el tiempo
                 btn.addEventListener('click', () => {
                     video.currentTime = time;
                     updateProgressUI();
-                    if(!video.paused) btnPlayPause.click(); // Pausamos por si el fantasma lo quiere ver clavado
+                    if(!video.paused) btnPlayPause.click(); 
                 });
 
                 const delBtn = document.createElement('button');
@@ -509,7 +486,6 @@
             });
         }
 
-        // Settings Listeners
         toolThickness.addEventListener('input', (e) => {
             currentThickness = parseInt(e.target.value);
             lblThickness.textContent = currentThickness + 'px';
@@ -520,12 +496,28 @@
             lblOpacity.textContent = e.target.value + '%';
         });
 
-        // Mouse Events
+        // Hit Detection Math for "Dedo" tool
+        function sqr(x) { return x * x }
+        function dist2(v, w) { return sqr(v.x - w.x) + sqr(v.y - w.y) }
+        function distToSegmentSquared(p, v, w) {
+            let l2 = dist2(v, w);
+            if (l2 === 0) return dist2(p, v);
+            let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+            t = Math.max(0, Math.min(1, t));
+            return dist2(p, { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) });
+        }
+        function distToSegment(p, v, w) { return Math.sqrt(distToSegmentSquared(p, v, w)); }
+        function distToLine(p, v, w) {
+            let l2 = dist2(v, w);
+            if (l2 === 0) return Math.sqrt(dist2(p, v));
+            let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+            return Math.sqrt(dist2(p, { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) }));
+        }
+
         let currentMousePos = {x:0, y:0};
 
         function getMousePos(evt) {
             const rect = canvas.getBoundingClientRect();
-            // Scale mouse coordinates to canvas resolution
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
             return {
@@ -535,14 +527,44 @@
         }
 
         canvas.addEventListener('mousedown', (e) => {
-            if(!video.src) return; // Ignore if no video
+            if(!video.src) return; 
             
-            // Si la herramienta es paneo, nos movemos en vez de dibujar
             if(currentTool === 'pan-white') {
                 isPanning = true;
                 startPanX = e.clientX - panX;
                 startPanY = e.clientY - panY;
                 canvas.classList.replace('cursor-grab', 'cursor-grabbing');
+                return;
+            }
+
+            if(currentTool === 'select-purple') {
+                let hitIndex = -1;
+                let p = getMousePos(e);
+                for (let i = drawings.length - 1; i >= 0; i--) {
+                    let shape = drawings[i];
+                    let hit = false;
+                    let tolerance = (shape.thickness / 2) + 8; // Margen de error para hacer click más fácil
+                    
+                    if (shape.tool === 'line-red' || shape.tool === 'line-blue') {
+                        if (distToLine(p, {x: shape.startX, y: shape.startY}, {x: shape.endX, y: shape.endY}) <= tolerance) hit = true;
+                    } else if (shape.tool === 'arrow-yellow') {
+                        if (distToSegment(p, {x: shape.startX, y: shape.startY}, {x: shape.endX, y: shape.endY}) <= tolerance) hit = true;
+                    } else if (shape.tool === 'free-green') {
+                        for (let j = 0; j < shape.points.length - 1; j++) {
+                            if (distToSegment(p, shape.points[j], shape.points[j+1]) <= tolerance) {
+                                hit = true; break;
+                            }
+                        }
+                    }
+                    
+                    if (hit) { hitIndex = i; break; }
+                }
+                
+                if (hitIndex !== -1) {
+                    isDraggingShape = true;
+                    draggedShapeIndex = hitIndex;
+                    lastDragPos = p;
+                }
                 return;
             }
 
@@ -553,11 +575,26 @@
         });
 
         canvas.addEventListener('mousemove', (e) => {
-            // Manejar paneo de cámara
             if(isPanning) {
                 panX = e.clientX - startPanX;
                 panY = e.clientY - startPanY;
                 updateTransform();
+                return;
+            }
+
+            if (isDraggingShape) {
+                let p = getMousePos(e);
+                let dx = p.x - lastDragPos.x;
+                let dy = p.y - lastDragPos.y;
+                let shape = drawings[draggedShapeIndex];
+
+                if (shape.tool === 'free-green') {
+                    shape.points.forEach(pt => { pt.x += dx; pt.y += dy; });
+                } else {
+                    shape.startX += dx; shape.startY += dy;
+                    shape.endX += dx; shape.endY += dy;
+                }
+                lastDragPos = p;
                 return;
             }
 
@@ -575,10 +612,14 @@
                 return;
             }
 
+            if(isDraggingShape) {
+                isDraggingShape = false;
+                return;
+            }
+
             if(!isDrawing) return;
             isDrawing = false;
             
-            // Save the shape
             drawings.push({
                 tool: currentTool,
                 points: [...currentPath],
@@ -597,13 +638,14 @@
                 isPanning = false;
                 canvas.classList.replace('cursor-grabbing', 'cursor-grab');
             }
+            if(isDraggingShape) {
+                isDraggingShape = false;
+            }
             if(isDrawing) {
-               // Treat as mouseup if they drag outside
                canvas.dispatchEvent(new Event('mouseup'));
             }
         });
 
-        // Render Shapes Function
         function renderShape(shape) {
             ctx.save();
             ctx.globalAlpha = shape.opacity;
@@ -611,7 +653,6 @@
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
 
-            // Set Color
             if(shape.tool.includes('red')) ctx.strokeStyle = '#ef4444';
             if(shape.tool.includes('blue')) ctx.strokeStyle = '#3b82f6';
             if(shape.tool.includes('yellow')) ctx.strokeStyle = '#facc15';
@@ -619,9 +660,23 @@
 
             ctx.beginPath();
 
-            if (shape.tool.startsWith('line')) {
-                ctx.moveTo(shape.startX, shape.startY);
-                ctx.lineTo(shape.endX, shape.endY);
+            if (shape.tool === 'line-red' || shape.tool === 'line-blue') {
+                const dx = shape.endX - shape.startX;
+                const dy = shape.endY - shape.startY;
+                if (dx === 0 && dy === 0) {
+                    ctx.restore();
+                    return; // Ignorar si es solo un click sin arrastre
+                }
+
+                // Matemática para dibujar línea infinita en base a 2 puntos
+                const scale = 10000;
+                const p1x = shape.startX - dx * scale;
+                const p1y = shape.startY - dy * scale;
+                const p2x = shape.endX + dx * scale;
+                const p2y = shape.endY + dy * scale;
+
+                ctx.moveTo(p1x, p1y);
+                ctx.lineTo(p2x, p2y);
                 ctx.stroke();
             } 
             else if (shape.tool === 'free-green') {
@@ -634,17 +689,15 @@
                 }
             }
             else if (shape.tool === 'arrow-yellow') {
-                const headlen = 15 * (shape.thickness / 4); // size of arrow head
+                const headlen = 15 * (shape.thickness / 4); 
                 const dx = shape.endX - shape.startX;
                 const dy = shape.endY - shape.startY;
                 const angle = Math.atan2(dy, dx);
                 
-                // Line
                 ctx.moveTo(shape.startX, shape.startY);
                 ctx.lineTo(shape.endX, shape.endY);
                 ctx.stroke();
                 
-                // Arrowhead (drawn as solid triangle)
                 ctx.beginPath();
                 ctx.fillStyle = ctx.strokeStyle;
                 ctx.moveTo(shape.endX, shape.endY);
@@ -657,7 +710,6 @@
             ctx.restore();
         }
 
-        // Actions
         btnUndo.addEventListener('click', () => {
             if(drawings.length > 0) drawings.pop();
         });
