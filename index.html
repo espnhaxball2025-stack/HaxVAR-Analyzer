@@ -32,70 +32,91 @@
         input[type=range] {
             accent-color: #ef4444;
         }
+
+        /* Animación para el flash de captura de pantalla */
+        @keyframes flash {
+            0% { background-color: rgba(255, 255, 255, 0.8); }
+            100% { background-color: transparent; }
+        }
+        .flash-animation {
+            animation: flash 0.5s ease-out;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
-    <header class="bg-red-700 text-white p-4 shadow-lg border-b-4 border-red-900 flex justify-between items-center">
+    <header class="bg-red-700 text-white p-4 shadow-lg border-b-4 border-red-900 flex justify-between items-center z-30">
         <div class="flex items-center gap-3">
             <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
             <h1 class="text-3xl font-black italic tracking-tighter">HaxVAR <span class="text-red-300 font-normal text-xl uppercase tracking-widest">ANALYZER</span></h1>
         </div>
-        <div class="text-sm font-semibold bg-red-900 px-4 py-1 rounded-full animate-pulse">
-            EN VIVO - CABINA DE REVISIÓN
+        <div class="flex items-center gap-4">
+            <div class="hidden md:flex text-xs font-medium text-red-200 bg-red-800/50 px-3 py-1 rounded-lg gap-3">
+                <span><kbd class="bg-red-900 px-1 rounded">Espacio</kbd> Play/Pausa</span>
+                <span><kbd class="bg-red-900 px-1 rounded">← →</kbd> Frames</span>
+                <span><kbd class="bg-red-900 px-1 rounded">Ctrl+Z</kbd> Deshacer</span>
+            </div>
+            <div class="text-sm font-semibold bg-red-900 px-4 py-1 rounded-full animate-pulse shadow-inner">
+                EN VIVO - CABINA DE REVISIÓN
+            </div>
         </div>
     </header>
 
-    <main class="flex-1 flex flex-col lg:flex-row p-4 gap-4 max-w-[1600px] mx-auto w-full">
+    <main class="flex-1 flex flex-col lg:flex-row p-4 gap-4 max-w-[1600px] mx-auto w-full relative">
         
-        <div class="flex-1 flex flex-col gap-4">
+        <div class="flex-1 flex flex-col gap-4 relative">
             
             <div class="relative bg-black rounded-xl overflow-hidden shadow-2xl border-2 border-slate-700 aspect-video flex items-center justify-center group" id="videoContainer">
                 
                 <video id="sourceVideo" class="hidden" playsinline></video>
                 
-                <canvas id="varCanvas" class="w-full h-full cursor-crosshair"></canvas>
+                <canvas id="varCanvas" class="w-full h-full cursor-crosshair transform-gpu"></canvas>
                 
                 <div class="tv-scanlines"></div>
+                <div id="flashOverlay" class="absolute inset-0 pointer-events-none z-30"></div>
 
                 <div id="uploadOverlay" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 z-20">
-                    <label for="videoUpload" class="cursor-pointer group flex flex-col items-center p-8 border-4 border-dashed border-slate-500 rounded-2xl hover:border-red-500 transition-colors bg-slate-800 hover:bg-slate-700">
+                    <label for="videoUpload" class="cursor-pointer group flex flex-col items-center p-8 border-4 border-dashed border-slate-500 rounded-2xl hover:border-red-500 transition-colors bg-slate-800 hover:bg-slate-700 w-3/4 max-w-lg text-center">
                         <svg class="w-16 h-16 text-slate-400 group-hover:text-red-400 mb-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                         <span class="text-xl font-bold text-slate-200 group-hover:text-white">Cargar Jugada Polémica (MP4/WebM)</span>
                         <span class="text-sm text-slate-400 mt-2">No subas .hbr, grabá la jugada en video, pedazo de termo.</span>
                     </label>
                     <input type="file" id="videoUpload" accept="video/mp4, video/webm, .hbr" class="hidden">
                 </div>
-
+                
+                <!-- Botón de Fullscreen flotante -->
+                <button id="btnFullscreen" class="absolute top-4 right-4 z-40 bg-black/50 hover:bg-black/80 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hidden">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                </button>
             </div>
 
             <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg">
                 <div class="flex flex-wrap items-center justify-between gap-4">
                     
                     <div class="flex items-center gap-2">
-                        <button id="btnPlayPause" class="bg-red-600 hover:bg-red-500 text-white rounded-lg p-3 transition-colors disabled:opacity-50">
+                        <button id="btnPlayPause" class="bg-red-600 hover:bg-red-500 text-white rounded-lg p-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                             <svg id="iconPlay" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
                             <svg id="iconPause" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
                         </button>
                         
                         <div class="flex bg-slate-900 rounded-lg overflow-hidden border border-slate-600">
-                            <button id="btnFrameBack" title="Cuadro Anterior" class="p-2 hover:bg-slate-700 disabled:opacity-50"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+                            <button id="btnFrameBack" title="Cuadro Anterior (Flecha Izq)" class="p-2 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed" disabled><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
                             <div class="px-3 py-2 text-xs font-bold text-slate-400 border-x border-slate-600 flex items-center">FRAME A FRAME</div>
-                            <button id="btnFrameFwd" title="Cuadro Siguiente" class="p-2 hover:bg-slate-700 disabled:opacity-50"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+                            <button id="btnFrameFwd" title="Cuadro Siguiente (Flecha Der)" class="p-2 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed" disabled><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
                         </div>
                     </div>
 
                     <div class="flex-1 mx-4 flex items-center gap-3">
-                        <span id="timeCurrent" class="text-sm font-mono text-slate-400">00:00.00</span>
-                        <input type="range" id="videoProgress" value="0" min="0" max="100" step="0.1" class="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer">
-                        <span id="timeTotal" class="text-sm font-mono text-slate-400">00:00.00</span>
+                        <span id="timeCurrent" class="text-sm font-mono text-slate-400 w-16 text-right">00:00.00</span>
+                        <input type="range" id="videoProgress" value="0" min="0" max="100" step="0.01" class="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer" disabled>
+                        <span id="timeTotal" class="text-sm font-mono text-slate-400 w-16">00:00.00</span>
                     </div>
 
                 </div>
             </div>
         </div>
 
-        <div class="w-full lg:w-80 bg-slate-800 rounded-xl border border-slate-700 shadow-xl flex flex-col overflow-hidden max-h-[85vh]">
+        <div class="w-full lg:w-80 bg-slate-800 rounded-xl border border-slate-700 shadow-xl flex flex-col overflow-hidden lg:max-h-[85vh]">
             <div class="bg-slate-900 p-4 border-b border-slate-700">
                 <h2 class="text-lg font-black uppercase tracking-wide text-slate-200">Herramientas VAR</h2>
             </div>
@@ -105,29 +126,29 @@
                 <div>
                     <label class="text-xs text-slate-400 uppercase font-bold mb-2 block">Trazado de Líneas</label>
                     <div class="grid grid-cols-2 gap-2">
-                        <button class="tool-btn active flex flex-col items-center p-3 rounded-lg border-2 border-red-500 bg-red-900/20 text-white transition-all" data-tool="line-red">
+                        <button class="tool-btn active flex flex-col items-center p-3 rounded-lg border-2 border-red-500 bg-red-900/20 text-white transition-all shadow-inner" data-tool="line-red">
                             <div class="w-full h-1 bg-red-500 mb-2 rounded"></div>
-                            <span class="text-xs font-bold">Línea Gol (Roja)</span>
+                            <span class="text-xs font-bold text-center">Línea Gol<br>(Roja)</span>
                         </button>
                         <button class="tool-btn flex flex-col items-center p-3 rounded-lg border-2 border-slate-600 hover:border-blue-500 hover:bg-blue-900/20 text-slate-300 transition-all" data-tool="line-blue">
                             <div class="w-full h-1 bg-blue-500 mb-2 rounded"></div>
-                            <span class="text-xs font-bold">Offside (Azul)</span>
+                            <span class="text-xs font-bold text-center">Offside<br>(Azul)</span>
                         </button>
                         <button class="tool-btn flex flex-col items-center p-3 rounded-lg border-2 border-slate-600 hover:border-yellow-400 hover:bg-yellow-900/20 text-slate-300 transition-all" data-tool="arrow-yellow">
                             <svg class="w-6 h-6 text-yellow-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                            <span class="text-xs font-bold">Flecha</span>
+                            <span class="text-xs font-bold text-center">Flecha<br>Indicador</span>
                         </button>
                         <button class="tool-btn flex flex-col items-center p-3 rounded-lg border-2 border-slate-600 hover:border-green-400 hover:bg-green-900/20 text-slate-300 transition-all" data-tool="free-green">
                             <svg class="w-6 h-6 text-green-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                            <span class="text-xs font-bold">Lápiz Libre</span>
+                            <span class="text-xs font-bold text-center">Lápiz<br>Libre</span>
                         </button>
                         <button class="tool-btn flex flex-col items-center p-3 rounded-lg border-2 border-slate-600 hover:border-white hover:bg-slate-700 text-slate-300 transition-all" data-tool="pan-white">
                             <svg class="w-6 h-6 text-white mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"></path></svg>
-                            <span class="text-xs font-bold">Mover Cám.</span>
+                            <span class="text-xs font-bold text-center">Mover<br>Cámara</span>
                         </button>
                         <button class="tool-btn flex flex-col items-center p-3 rounded-lg border-2 border-slate-600 hover:border-purple-400 hover:bg-purple-900/20 text-slate-300 transition-all" data-tool="select-purple">
                             <svg class="w-6 h-6 text-purple-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
-                            <span class="text-xs font-bold">Dedo (Mover)</span>
+                            <span class="text-xs font-bold text-center">Dedo<br>(Mover trazo)</span>
                         </button>
                     </div>
                 </div>
@@ -149,7 +170,7 @@
                 <div class="bg-slate-900/50 p-4 rounded-lg border border-slate-700">
                     <div class="flex justify-between items-center mb-3">
                         <label class="text-xs text-slate-400 uppercase font-bold">Marcadores</label>
-                        <button id="btnAddMarker" class="text-[10px] bg-blue-600 hover:bg-blue-500 px-2 py-1 rounded text-white font-bold transition-colors shadow-lg">+ MARCAR ACÁ</button>
+                        <button id="btnAddMarker" class="text-[10px] bg-blue-600 hover:bg-blue-500 px-2 py-1 rounded text-white font-bold transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>+ MARCAR ACÁ</button>
                     </div>
                     <div id="markersList" class="flex flex-col gap-2 max-h-32 overflow-y-auto">
                         <div class="text-xs text-slate-500 text-center italic py-2">Ninguna marca. Dale, buscá la falta.</div>
@@ -169,7 +190,7 @@
 
                     <div>
                         <div class="flex justify-between text-xs mb-1">
-                            <span>Opacidad (Transparencia)</span>
+                            <span>Opacidad</span>
                             <span id="lblOpacity">80%</span>
                         </div>
                         <input type="range" id="toolOpacity" value="80" min="10" max="100" class="w-full h-1 bg-slate-600 rounded appearance-none">
@@ -178,15 +199,21 @@
 
                 <div>
                     <label class="text-xs text-slate-400 uppercase font-bold mb-2 block">Acciones</label>
-                    <div class="flex gap-2">
-                        <button id="btnUndo" class="flex-1 bg-slate-700 hover:bg-slate-600 p-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
-                            Deshacer
+                    <div class="flex flex-col gap-2">
+                        <button id="btnExport" class="w-full bg-blue-600 hover:bg-blue-500 p-3 rounded-lg text-sm font-bold text-white flex items-center justify-center gap-2 transition-colors shadow-lg disabled:opacity-50" disabled>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                            Exportar Captura VAR
                         </button>
-                        <button id="btnClear" class="flex-1 bg-red-900/50 hover:bg-red-600 border border-red-800 hover:border-red-500 p-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            Limpiar
-                        </button>
+                        <div class="flex gap-2">
+                            <button id="btnUndo" class="flex-1 bg-slate-700 hover:bg-slate-600 p-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+                                Deshacer
+                            </button>
+                            <button id="btnClear" class="flex-1 bg-red-900/50 hover:bg-red-600 border border-red-800 hover:border-red-500 p-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                Limpiar
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
@@ -204,7 +231,7 @@
             <div class="absolute top-0 left-0 w-full h-2 bg-red-600 animate-pulse"></div>
             <svg class="w-20 h-20 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
             <h3 class="text-2xl font-black text-white mb-2">¡Epa, cabeza de termo!</h3>
-            <p class="text-slate-300 mb-6">Trataste de subir un archivo <strong>.hbr</strong>. El VAR profesional funciona con video. Andá a Haxball, reproducí la jugada, grabala en <strong>.mp4</strong> o <strong>.webm</strong> con OBS/Windows y subí el video acá. ¡Media pila!</p>
+            <p class="text-slate-300 mb-6">Trataste de subir un archivo <strong>.hbr</strong>. El VAR profesional funciona con video. Andá a Haxball, reproducí la jugada, grabala en <strong>.mp4</strong> o <strong>.webm</strong> con OBS o Windows, y subí el video acá. ¡Media pila!</p>
             <button id="btnCloseModal" class="bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-8 rounded-lg transition-colors w-full">Entendido, soy un boludo</button>
         </div>
     </div>
@@ -213,9 +240,11 @@
         // DOM Elements
         const video = document.getElementById('sourceVideo');
         const canvas = document.getElementById('varCanvas');
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { alpha: false }); // Optimización
         const videoUpload = document.getElementById('videoUpload');
         const uploadOverlay = document.getElementById('uploadOverlay');
+        const videoContainer = document.getElementById('videoContainer');
+        const flashOverlay = document.getElementById('flashOverlay');
         
         // Controls
         const btnPlayPause = document.getElementById('btnPlayPause');
@@ -226,6 +255,8 @@
         const videoProgress = document.getElementById('videoProgress');
         const timeCurrent = document.getElementById('timeCurrent');
         const timeTotal = document.getElementById('timeTotal');
+        const btnFullscreen = document.getElementById('btnFullscreen');
+        const btnExport = document.getElementById('btnExport');
 
         // Tools
         const toolBtns = document.querySelectorAll('.tool-btn');
@@ -252,6 +283,7 @@
         let currentTool = 'line-red'; // line-red, line-blue, arrow-yellow, free-green, pan-white, select-purple
         let currentThickness = 5;
         let currentOpacity = 0.8;
+        let isVideoLoaded = false;
         
         // Zoom & Pan State
         let zoomLevel = 1;
@@ -272,6 +304,8 @@
         let currentPath = [];
 
         let animationFrameId = null;
+        let lastVideoTime = -1; // Para evitar redibujar cuadros si no hace falta
+        const frameStep = 1 / 30; // 30 FPS step approach
 
         // --- File Handling ---
         videoUpload.addEventListener('change', function(e) {
@@ -288,10 +322,16 @@
             const url = URL.createObjectURL(file);
             video.src = url;
             uploadOverlay.classList.add('hidden');
+            btnFullscreen.classList.remove('hidden');
             
+            // Habilitar controles
             btnPlayPause.disabled = false;
             btnFrameFwd.disabled = false;
             btnFrameBack.disabled = false;
+            videoProgress.disabled = false;
+            btnAddMarker.disabled = false;
+            btnExport.disabled = false;
+            isVideoLoaded = true;
         });
 
         btnCloseModal.addEventListener('click', () => {
@@ -301,15 +341,24 @@
 
         // --- Video Setup & Render Loop ---
         video.addEventListener('loadedmetadata', () => {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+            if (video.videoWidth > 0 && video.videoHeight > 0) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+            } else {
+                // Fallback por si la metadata falla
+                canvas.width = 1280;
+                canvas.height = 720;
+            }
             timeTotal.textContent = formatTime(video.duration);
             videoProgress.max = video.duration;
-            drawLoop();
+            
+            if (!animationFrameId) {
+                drawLoop();
+            }
         });
 
         function formatTime(seconds) {
-            if(isNaN(seconds)) return "00:00.00";
+            if(isNaN(seconds) || !isFinite(seconds)) return "00:00.00";
             const m = Math.floor(seconds / 60).toString().padStart(2, '0');
             const s = Math.floor(seconds % 60).toString().padStart(2, '0');
             const ms = Math.floor((seconds % 1) * 100).toString().padStart(2, '0');
@@ -317,13 +366,16 @@
         }
 
         function drawLoop() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // Optimization: Only clear and redraw video if playing or drawing, 
+            // but for simplicity in VAR we constantly refresh to show immediate changes
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            if(video.videoWidth > 0) {
+            if(video.readyState >= 2 && video.videoWidth > 0) {
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             }
 
-            drawings.forEach(d => renderShape(d));
+            drawings.forEach(d => renderShape(d, ctx));
 
             if (isDrawing) {
                 renderShape({
@@ -335,7 +387,7 @@
                     endY: currentMousePos.y,
                     thickness: currentThickness,
                     opacity: currentOpacity
-                });
+                }, ctx);
             }
 
             if (!video.paused) {
@@ -346,7 +398,9 @@
             animationFrameId = requestAnimationFrame(drawLoop);
         }
 
-        btnPlayPause.addEventListener('click', () => {
+        // --- Reproducción y Controles ---
+        function togglePlayPause() {
+            if(!isVideoLoaded) return;
             if(video.paused) {
                 video.play();
                 iconPlay.classList.add('hidden');
@@ -356,23 +410,23 @@
                 iconPause.classList.add('hidden');
                 iconPlay.classList.remove('hidden');
             }
-        });
+        }
+
+        btnPlayPause.addEventListener('click', togglePlayPause);
 
         video.addEventListener('ended', () => {
             iconPause.classList.add('hidden');
             iconPlay.classList.remove('hidden');
         });
 
-        const frameStep = 1 / 60; 
-        
         btnFrameFwd.addEventListener('click', () => {
-            if(!video.paused) btnPlayPause.click(); 
+            if(!video.paused) togglePlayPause(); 
             video.currentTime = Math.min(video.duration, video.currentTime + frameStep);
             updateProgressUI();
         });
 
         btnFrameBack.addEventListener('click', () => {
-            if(!video.paused) btnPlayPause.click();
+            if(!video.paused) togglePlayPause();
             video.currentTime = Math.max(0, video.currentTime - frameStep);
             updateProgressUI();
         });
@@ -386,18 +440,41 @@
             videoProgress.value = video.currentTime;
             timeCurrent.textContent = formatTime(video.currentTime);
         }
+
+        // Hotkeys Globales
+        window.addEventListener('keydown', (e) => {
+            // Evitar que espacio scrollee la pagina
+            if (e.code === 'Space' && e.target === document.body) e.preventDefault();
+            
+            if (!isVideoLoaded) return;
+            
+            if (e.code === 'Space') {
+                e.preventDefault();
+                togglePlayPause();
+            } else if (e.code === 'ArrowRight') {
+                e.preventDefault();
+                btnFrameFwd.click();
+            } else if (e.code === 'ArrowLeft') {
+                e.preventDefault();
+                btnFrameBack.click();
+            } else if (e.code === 'KeyZ' && e.ctrlKey) {
+                e.preventDefault();
+                btnUndo.click();
+            }
+        });
         
-        // Tool Selection
+        // --- Interfaz y Herramientas ---
         toolBtns.forEach(btn => {
             btn.addEventListener('click', () => {
                 toolBtns.forEach(b => {
-                    b.classList.remove('active', 'border-red-500', 'border-blue-500', 'border-yellow-400', 'border-green-400', 'border-white', 'border-purple-400', 'bg-red-900/20', 'bg-blue-900/20', 'bg-yellow-900/20', 'bg-green-900/20', 'bg-slate-700', 'bg-purple-900/20');
+                    b.classList.remove('active', 'border-red-500', 'border-blue-500', 'border-yellow-400', 'border-green-400', 'border-white', 'border-purple-400', 'bg-red-900/20', 'bg-blue-900/20', 'bg-yellow-900/20', 'bg-green-900/20', 'bg-slate-700', 'bg-purple-900/20', 'shadow-inner');
                     b.classList.add('border-slate-600');
                 });
                 
                 currentTool = btn.dataset.tool;
                 
                 btn.classList.remove('border-slate-600');
+                btn.classList.add('shadow-inner');
                 if(currentTool.includes('red')) btn.classList.add('border-red-500', 'bg-red-900/20');
                 if(currentTool.includes('blue')) btn.classList.add('border-blue-500', 'bg-blue-900/20');
                 if(currentTool.includes('yellow')) btn.classList.add('border-yellow-400', 'bg-yellow-900/20');
@@ -405,8 +482,9 @@
                 if(currentTool.includes('white')) btn.classList.add('border-white', 'bg-slate-700');
                 if(currentTool.includes('purple')) btn.classList.add('border-purple-400', 'bg-purple-900/20');
 
+                // Cambiar Cursor
                 if(currentTool === 'pan-white') {
-                    canvas.classList.remove('cursor-crosshair', 'cursor-pointer');
+                    canvas.classList.remove('cursor-crosshair', 'cursor-pointer', 'cursor-grabbing');
                     canvas.classList.add('cursor-grab');
                 } else if (currentTool === 'select-purple') {
                     canvas.classList.remove('cursor-crosshair', 'cursor-grab', 'cursor-grabbing');
@@ -421,7 +499,7 @@
         function updateTransform() {
             canvas.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
             canvas.style.transformOrigin = 'center center';
-            canvas.style.willChange = 'transform';
+            // Corregir límites si se va muy lejos (opcional, por ahora free pan)
         }
 
         toolZoom.addEventListener('input', (e) => {
@@ -439,12 +517,16 @@
             updateTransform();
         });
 
+        // --- Marcadores ---
         btnAddMarker.addEventListener('click', () => {
-            if(!video.src) return; 
+            if(!isVideoLoaded) return; 
             const time = video.currentTime;
-            timeMarkers.push(time);
-            timeMarkers.sort((a, b) => a - b);
-            renderMarkersUI();
+            // Evitar duplicados exactos
+            if(!timeMarkers.includes(time)) {
+                timeMarkers.push(time);
+                timeMarkers.sort((a, b) => a - b);
+                renderMarkersUI();
+            }
         });
 
         function renderMarkersUI() {
@@ -456,7 +538,7 @@
             markersList.innerHTML = '';
             timeMarkers.forEach((time, index) => {
                 const div = document.createElement('div');
-                div.className = 'flex gap-1';
+                div.className = 'flex gap-1 animate-fadeIn';
 
                 const btn = document.createElement('button');
                 btn.className = 'flex-1 flex justify-between items-center bg-slate-800 hover:bg-slate-700 p-2 rounded border border-slate-600 transition-colors text-left group';
@@ -468,12 +550,13 @@
                 btn.addEventListener('click', () => {
                     video.currentTime = time;
                     updateProgressUI();
-                    if(!video.paused) btnPlayPause.click(); 
+                    if(!video.paused) togglePlayPause(); 
                 });
 
                 const delBtn = document.createElement('button');
                 delBtn.className = 'bg-red-900/50 hover:bg-red-600 border border-red-800 hover:border-red-500 px-2 rounded flex items-center justify-center transition-colors text-slate-300 hover:text-white';
                 delBtn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+                delBtn.title = "Borrar marca";
                 
                 delBtn.addEventListener('click', () => {
                     timeMarkers.splice(index, 1);
@@ -486,6 +569,7 @@
             });
         }
 
+        // --- Ajustes Trazo ---
         toolThickness.addEventListener('input', (e) => {
             currentThickness = parseInt(e.target.value);
             lblThickness.textContent = currentThickness + 'px';
@@ -496,7 +580,7 @@
             lblOpacity.textContent = e.target.value + '%';
         });
 
-        // Hit Detection Math for "Dedo" tool
+        // --- Dibujo y Matemáticas ---
         function sqr(x) { return x * x }
         function dist2(v, w) { return sqr(v.x - w.x) + sqr(v.y - w.y) }
         function distToSegmentSquared(p, v, w) {
@@ -518,6 +602,7 @@
 
         function getMousePos(evt) {
             const rect = canvas.getBoundingClientRect();
+            // Calcula las coordenadas reales teniendo en cuenta el zoom (escala CSS)
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
             return {
@@ -527,7 +612,7 @@
         }
 
         canvas.addEventListener('mousedown', (e) => {
-            if(!video.src) return; 
+            if(!isVideoLoaded) return; 
             
             if(currentTool === 'pan-white') {
                 isPanning = true;
@@ -543,7 +628,7 @@
                 for (let i = drawings.length - 1; i >= 0; i--) {
                     let shape = drawings[i];
                     let hit = false;
-                    let tolerance = (shape.thickness / 2) + 8; // Margen de error para hacer click más fácil
+                    let tolerance = (shape.thickness / 2) + 12; // Un poco más generoso
                     
                     if (shape.tool === 'line-red' || shape.tool === 'line-blue') {
                         if (distToLine(p, {x: shape.startX, y: shape.startY}, {x: shape.endX, y: shape.endY}) <= tolerance) hit = true;
@@ -564,6 +649,7 @@
                     isDraggingShape = true;
                     draggedShapeIndex = hitIndex;
                     lastDragPos = p;
+                    canvas.classList.replace('cursor-pointer', 'cursor-grabbing');
                 }
                 return;
             }
@@ -605,7 +691,7 @@
             }
         });
 
-        canvas.addEventListener('mouseup', () => {
+        function endAction() {
             if(isPanning) {
                 isPanning = false;
                 canvas.classList.replace('cursor-grabbing', 'cursor-grab');
@@ -614,12 +700,21 @@
 
             if(isDraggingShape) {
                 isDraggingShape = false;
+                canvas.classList.replace('cursor-grabbing', 'cursor-pointer');
                 return;
             }
 
             if(!isDrawing) return;
             isDrawing = false;
             
+            // Si dibujó algo minúsculo con linea/flecha, descartar
+            const dx = Math.abs(currentMousePos.x - startPos.x);
+            const dy = Math.abs(currentMousePos.y - startPos.y);
+            if (currentTool !== 'free-green' && dx < 2 && dy < 2) {
+                currentPath = [];
+                return;
+            }
+
             drawings.push({
                 tool: currentTool,
                 points: [...currentPath],
@@ -631,91 +726,142 @@
                 opacity: currentOpacity
             });
             currentPath = [];
-        });
-        
-        canvas.addEventListener('mouseleave', () => {
-            if(isPanning) {
-                isPanning = false;
-                canvas.classList.replace('cursor-grabbing', 'cursor-grab');
-            }
-            if(isDraggingShape) {
-                isDraggingShape = false;
-            }
-            if(isDrawing) {
-               canvas.dispatchEvent(new Event('mouseup'));
-            }
-        });
+        }
 
-        function renderShape(shape) {
-            ctx.save();
-            ctx.globalAlpha = shape.opacity;
-            ctx.lineWidth = shape.thickness;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
+        canvas.addEventListener('mouseup', endAction);
+        canvas.addEventListener('mouseleave', endAction);
 
-            if(shape.tool.includes('red')) ctx.strokeStyle = '#ef4444';
-            if(shape.tool.includes('blue')) ctx.strokeStyle = '#3b82f6';
-            if(shape.tool.includes('yellow')) ctx.strokeStyle = '#facc15';
-            if(shape.tool.includes('green')) ctx.strokeStyle = '#4ade80';
+        function renderShape(shape, context) {
+            context.save();
+            context.globalAlpha = shape.opacity;
+            context.lineWidth = shape.thickness;
+            context.lineCap = 'round';
+            context.lineJoin = 'round';
 
-            ctx.beginPath();
+            if(shape.tool.includes('red')) context.strokeStyle = '#ef4444';
+            if(shape.tool.includes('blue')) context.strokeStyle = '#3b82f6';
+            if(shape.tool.includes('yellow')) context.strokeStyle = '#facc15';
+            if(shape.tool.includes('green')) context.strokeStyle = '#4ade80';
+
+            context.beginPath();
 
             if (shape.tool === 'line-red' || shape.tool === 'line-blue') {
                 const dx = shape.endX - shape.startX;
                 const dy = shape.endY - shape.startY;
                 if (dx === 0 && dy === 0) {
-                    ctx.restore();
-                    return; // Ignorar si es solo un click sin arrastre
+                    context.restore();
+                    return; 
                 }
 
-                // Matemática para dibujar línea infinita en base a 2 puntos
+                // Línea infinita
                 const scale = 10000;
                 const p1x = shape.startX - dx * scale;
                 const p1y = shape.startY - dy * scale;
                 const p2x = shape.endX + dx * scale;
                 const p2y = shape.endY + dy * scale;
 
-                ctx.moveTo(p1x, p1y);
-                ctx.lineTo(p2x, p2y);
-                ctx.stroke();
+                context.moveTo(p1x, p1y);
+                context.lineTo(p2x, p2y);
+                context.stroke();
             } 
             else if (shape.tool === 'free-green') {
                 if(shape.points && shape.points.length > 0) {
-                    ctx.moveTo(shape.points[0].x, shape.points[0].y);
+                    context.moveTo(shape.points[0].x, shape.points[0].y);
                     for(let i=1; i<shape.points.length; i++) {
-                        ctx.lineTo(shape.points[i].x, shape.points[i].y);
+                        context.lineTo(shape.points[i].x, shape.points[i].y);
                     }
-                    ctx.stroke();
+                    context.stroke();
                 }
             }
             else if (shape.tool === 'arrow-yellow') {
-                const headlen = 15 * (shape.thickness / 4); 
+                const headlen = 15 + (shape.thickness); 
                 const dx = shape.endX - shape.startX;
                 const dy = shape.endY - shape.startY;
                 const angle = Math.atan2(dy, dx);
                 
-                ctx.moveTo(shape.startX, shape.startY);
-                ctx.lineTo(shape.endX, shape.endY);
-                ctx.stroke();
+                context.moveTo(shape.startX, shape.startY);
+                context.lineTo(shape.endX, shape.endY);
+                context.stroke();
                 
-                ctx.beginPath();
-                ctx.fillStyle = ctx.strokeStyle;
-                ctx.moveTo(shape.endX, shape.endY);
-                ctx.lineTo(shape.endX - headlen * Math.cos(angle - Math.PI / 6), shape.endY - headlen * Math.sin(angle - Math.PI / 6));
-                ctx.lineTo(shape.endX - headlen * Math.cos(angle + Math.PI / 6), shape.endY - headlen * Math.sin(angle + Math.PI / 6));
-                ctx.lineTo(shape.endX, shape.endY);
-                ctx.fill();
+                context.beginPath();
+                context.fillStyle = context.strokeStyle;
+                context.moveTo(shape.endX, shape.endY);
+                context.lineTo(shape.endX - headlen * Math.cos(angle - Math.PI / 6), shape.endY - headlen * Math.sin(angle - Math.PI / 6));
+                context.lineTo(shape.endX - headlen * Math.cos(angle + Math.PI / 6), shape.endY - headlen * Math.sin(angle + Math.PI / 6));
+                context.lineTo(shape.endX, shape.endY);
+                context.fill();
             }
 
-            ctx.restore();
+            context.restore();
         }
 
+        // --- Acciones de Botones Extra ---
         btnUndo.addEventListener('click', () => {
             if(drawings.length > 0) drawings.pop();
         });
 
         btnClear.addEventListener('click', () => {
             drawings = [];
+        });
+
+        // Pantalla completa
+        btnFullscreen.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                if (videoContainer.requestFullscreen) {
+                    videoContainer.requestFullscreen();
+                } else if (videoContainer.webkitRequestFullscreen) { /* Safari */
+                    videoContainer.webkitRequestFullscreen();
+                } else if (videoContainer.msRequestFullscreen) { /* IE11 */
+                    videoContainer.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        });
+
+        // Exportar Captura (Screenshot)
+        btnExport.addEventListener('click', () => {
+            if(!isVideoLoaded) return;
+            
+            // Efecto Flash visual
+            flashOverlay.classList.remove('flash-animation');
+            void flashOverlay.offsetWidth; // trigger reflow
+            flashOverlay.classList.add('flash-animation');
+
+            // Crear un canvas temporal para combinar Video + Dibujos + Watermark
+            const exportCanvas = document.createElement('canvas');
+            exportCanvas.width = canvas.width;
+            exportCanvas.height = canvas.height;
+            const eCtx = exportCanvas.getContext('2d');
+
+            // Fondo negro (por si falla el video)
+            eCtx.fillStyle = '#000';
+            eCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+            
+            // Dibujar video
+            eCtx.drawImage(video, 0, 0, exportCanvas.width, exportCanvas.height);
+            
+            // Dibujar trazados (reutilizamos renderShape)
+            drawings.forEach(d => renderShape(d, eCtx));
+
+            // Agregar Marca de Agua VAR
+            eCtx.save();
+            eCtx.fillStyle = 'rgba(220, 38, 38, 0.9)'; // Red-600
+            eCtx.fillRect(20, 20, 220, 60);
+            eCtx.fillStyle = '#ffffff';
+            eCtx.font = 'bold 36px Inter, sans-serif';
+            eCtx.fillText('HaxVAR', 35, 62);
+            eCtx.font = '20px Inter, sans-serif';
+            eCtx.fillText('REVISIÓN OFICIAL', 35, 90);
+            eCtx.restore();
+
+            // Descargar
+            const link = document.createElement('a');
+            link.download = `HaxVAR_Polemica_${Math.floor(Date.now() / 1000)}.png`;
+            link.href = exportCanvas.toDataURL('image/png');
+            link.click();
         });
 
     </script>
