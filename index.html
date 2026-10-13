@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es" class="scroll-smooth"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HaxVar - VAR DE HAXBALL</title>
     <link rel="icon" type="image/png" href="https://kappa.lol/JNIL1T">
@@ -32,6 +31,8 @@
         }
         .flash-animation { animation: flash 0.5s ease-out; }
     </style>
+    <!-- Tailwind CSS CDN para que no se deforme nada -->
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="min-h-screen flex flex-col">
 
@@ -65,7 +66,7 @@
                 </div>
                 
                 <button id="btnFullscreen" class="absolute top-4 right-4 z-40 bg-black/50 hover:bg-black/80 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hidden">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l-5 5M4 15l-5-5m5 5v-4m0 4h-4"></path></svg>
                 </button>
             </div>
 
@@ -172,7 +173,6 @@
         let startPos = {x: 0, y: 0}, currentMousePos = {x: 0, y: 0}, currentPath = [];
         let animationFrameId = null;
 
-        // Manejo de carga de archivos (.hbr / video)
         videoUpload.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -193,7 +193,6 @@
                         canvas.width = 1280;
                         canvas.height = 720;
 
-                        // Obtener ticks si existen en la estructura del replay
                         totalTicks = hbrData.recording ? hbrData.recording.length : 1000;
                         currentTick = 0;
 
@@ -220,7 +219,6 @@
                 return;
             }
 
-            // Video normal MP4/WebM
             const url = URL.createObjectURL(file);
             video.src = url;
             isHbrLoaded = false;
@@ -234,7 +232,7 @@
         });
 
         function formatTicks(ticks) {
-            const seconds = ticks / 60; // Asumiendo 60 FPS en HaxBall
+            const seconds = ticks / 60;
             const m = Math.floor(seconds / 60).toString().padStart(2, '0');
             const s = Math.floor(seconds % 60).toString().padStart(2, '0');
             return `${m}:${s}.00`;
@@ -245,10 +243,7 @@
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             if (isHbrLoaded) {
-                // Dibujar la cancha de HaxBall
                 drawHaxballPitch();
-                
-                // Simular/Dibujar elementos del tick actual
                 drawReplayObjects(currentTick);
             } else if (video.readyState >= 2) {
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -270,26 +265,21 @@
         }
 
         function drawHaxballPitch() {
-            // Fondo verde clásico de HaxBall
             ctx.fillStyle = "#71c565";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Líneas de la cancha
             ctx.strokeStyle = "#ffffff";
             ctx.lineWidth = 4;
 
-            // Línea central
             ctx.beginPath();
             ctx.moveTo(canvas.width / 2, 0);
             ctx.lineTo(canvas.width / 2, canvas.height);
             ctx.stroke();
 
-            // Círculo central
             ctx.beginPath();
             ctx.arc(canvas.width / 2, canvas.height / 2, 100, 0, Math.PI * 2);
             ctx.stroke();
 
-            // Texto indicador de estado
             ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
             ctx.fillRect(canvas.width / 2 - 200, 20, 400, 40);
             ctx.fillStyle = "#ffffff";
@@ -299,8 +289,6 @@
         }
 
         function drawReplayObjects(tick) {
-            // Aquí puedes mapear las posiciones de hbrData.recording[tick]
-            // Dibujo de ejemplo de la pelota y jugadores en el centro
             ctx.fillStyle = "#ff5555";
             ctx.beginPath();
             ctx.arc(canvas.width / 2 + Math.sin(tick * 0.05) * 150, canvas.height / 2 + Math.cos(tick * 0.03) * 100, 12, 0, Math.PI * 2);
@@ -310,7 +298,6 @@
             ctx.stroke();
         }
 
-        // Controles de Reproducción
         btnPlayPause.addEventListener('click', () => {
             if (!isHbrLoaded) return;
             isPlaying = !isPlaying;
@@ -328,7 +315,7 @@
                         iconPause.classList.add('hidden');
                         iconPlay.classList.remove('hidden');
                     }
-                }, 1000 / 60); // 60 FPS
+                }, 1000 / 60);
             } else {
                 iconPause.classList.add('hidden');
                 iconPlay.classList.remove('hidden');
@@ -358,7 +345,6 @@
             }
         });
 
-        // Herramientas de dibujo y exportación
         canvas.addEventListener('mousedown', (e) => {
             isDrawing = true;
             const rect = canvas.getBoundingClientRect();
