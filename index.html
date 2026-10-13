@@ -86,7 +86,7 @@
                 
                 <!-- Botón de Fullscreen flotante -->
                 <button id="btnFullscreen" class="absolute top-4 right-4 z-40 bg-black/50 hover:bg-black/80 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hidden">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l-5 5M4 15l-5-5m5 5v-4m0 4h-4"></path></svg>
                 </button>
             </div>
 
@@ -322,8 +322,9 @@
                     const arrayBuffer = event.target.result;
                     console.log("¡Replay de HaxBall atrapado en crudo!", arrayBuffer.byteLength, "bytes.");
                     
-                    // ACÁ INTEGRÁS TU PARSER DE HBR EN EL FUTURO
-                    alert("¡Archivo .hbr / .hbr2 cargado con éxito en la matrix! Prepará el parser para leer los bytes.");
+                    // ¡ARREGLADO! Asignamos tamaño al canvas para que no quede en negro 0x0
+                    canvas.width = 1280;
+                    canvas.height = 720;
                     
                     uploadOverlay.classList.add('hidden');
                     btnFullscreen.classList.remove('hidden');
@@ -335,7 +336,12 @@
                     videoProgress.disabled = true;
                     btnAddMarker.disabled = true;
                     btnExport.disabled = false;
-                    isVideoLoaded = false; // No es un video de OBS, es data pura
+                    isVideoLoaded = false; // No es video, es data pura
+
+                    // Arrancamos el loop de renderizado explícitamente porque no hay loadedmetadata de video
+                    if (!animationFrameId) {
+                        drawLoop();
+                    }
                 };
 
                 reader.readAsArrayBuffer(file);
