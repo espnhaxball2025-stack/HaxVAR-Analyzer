@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HaxVAR | Análisis de jugadas</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0e1522;--panel:#151f31;--edge:#26334a;--txt:#e8edf6;--mut:#8b98af;--acc:#4cc9f0;--red:#ef4444;--blue:#3b82f6}
+*{box-sizing:border-box;margin:0}
+[hidden]{display:none!important}
+#v{position:absolute;width:2px;height:2px;opacity:0;pointer-events:none}
+html,body{height:100%}
+body{background:var(--bg);color:var(--txt);font:500 14px/1.4 Barlow,system-ui,sans-serif;display:flex;flex-direction:column}
+header{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;border-bottom:1px solid var(--edge)}
+.logo{font:700 26px 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.5px}
+.logo i{font-style:normal;color:var(--acc)}
+#fname{color:var(--mut);font-size:13px;max-width:50%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+main{flex:1;min-height:0;display:flex;gap:14px;padding:14px}
+.left{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
+#stage{flex:1;min-height:240px;background:#05080e;border:1px solid var(--edge);border-radius:8px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;touch-action:none}
+#wrap{position:relative;transform-origin:center}
+#cv{display:block;width:100%;height:100%;cursor:crosshair}
+#drop{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#0b111c;text-align:center;padding:20px}
+#drop.over{outline:2px dashed var(--acc);outline-offset:-12px}
+#drop h2{font:600 26px 'Barlow Condensed','Arial Narrow',sans-serif}
+#drop p{color:var(--mut)}
+button,select{font:inherit;color:var(--txt);background:#1c2a42;border:1px solid var(--edge);border-radius:6px;padding:8px 12px;cursor:pointer}
+button:hover,select:hover{border-color:#3b4d6d}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+button.pri{background:var(--acc);color:#06222b;border-color:var(--acc);font-weight:600}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--edge);border-radius:8px;padding:10px}
+.bar input[type=range]{flex:1;min-width:140px}
+.t{font-variant-numeric:tabular-nums;color:var(--mut);min-width:64px}
+input[type=range]{accent-color:var(--acc)}
+aside{width:290px;flex:none;background:var(--panel);border:1px solid var(--edge);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:16px;overflow-y:auto}
+aside h3{font:600 13px Barlow,sans-serif;color:var(--mut);margin-bottom:8px}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tool{display:flex;align-items:center;gap:8px;text-align:left}
+.tool.on{border-color:var(--acc);background:#1b3248}
+.sw{width:18px;height:4px;border-radius:2px;flex:none}
+.sw.o{height:14px;width:14px;border:3px solid var(--txt);border-radius:50%;background:none}
+.row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.row label{flex:none;width:76px;color:var(--txt)}
+.row input[type=range]{flex:1;min-width:0}
+.row output{width:40px;text-align:right;color:var(--mut)}
+input[type=color]{width:100%;height:32px;border:1px solid var(--edge);border-radius:6px;background:#1c2a42;padding:2px;cursor:pointer}
+.chk{display:flex;gap:8px;align-items:center;margin-bottom:6px;cursor:pointer}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.hint{color:var(--mut);font-size:12px;margin-top:auto}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--acc);color:#06222b;padding:8px 16px;border-radius:6px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.show{opacity:1}
+@media(max-width:860px){main{flex-direction:column;overflow-y:auto}aside{width:auto}#stage{flex:none;height:56vh}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header><div class="logo">Hax<i>VAR</i></div><div id="fname">Sin video cargado</div></header>
+<main>
+ <div class="left">
+  <div id="stage">
+   <div id="wrap"><canvas id="cv" width="1280" height="720"></canvas></div>
+   <div id="drop">
+    <h2>Cargá el video de la jugada</h2>
+    <p>Arrastralo acá o elegilo desde tu equipo. Formatos MP4 o WebM.</p>
+    <button class="pri" id="pick">Elegir video</button>
+   </div>
+  </div>
+  <div class="bar">
+   <button id="play">Reproducir</button>
+   <button id="back" title="Cuadro anterior (←)">‹ Cuadro</button>
+   <button id="fwd" title="Cuadro siguiente (→)">Cuadro ›</button>
+   <span class="t" id="tc">00:00.00</span>
+   <input type="range" id="seek" min="0" max="1" step="0.001" value="0" aria-label="Posición del video">
+   <span class="t" id="td">00:00.00</span>
+   <select id="rate" aria-label="Velocidad"><option value="0.25">0.25x</option><option value="0.5">0.5x</option><option value="1" selected>1x</option></select>
+   <select id="fps" aria-label="Cuadros por segundo"><option value="60">60 fps</option><option value="30">30 fps</option><option value="25">25 fps</option></select>
+  </div>
+ </div>
+ <aside>
+  <div><h3>Herramientas</h3><div class="tools" id="tools"></div></div>
+  <div>
+   <h3>Trazo</h3>
+   <div class="row"><label for="col">Color</label><input type="color" id="col" value="#facc15"></div>
+   <div class="row"><label for="wid">Grosor</label><input type="range" id="wid" min="1" max="20" value="4"><output id="wo">4 px</output></div>
+   <div class="row"><label for="opa">Opacidad</label><input type="range" id="opa" min="10" max="100" value="85"><output id="oo">85%</output></div>
+   <label class="chk"><input type="checkbox" id="ext" checked> Extender líneas hasta los bordes</label>
+   <label class="chk"><input type="checkbox" id="fill"> Relleno en círculos</label>
+  </div>
+  <div>
+   <h3>Vista</h3>
+   <div class="row"><label for="zm">Zoom</label><input type="range" id="zm" min="1" max="8" step="0.1" value="1"><output id="zo">1.0x</output></div>
+   <button id="rz" style="width:100%">Restablecer vista</button>
+  </div>
+  <div>
+   <h3>Acciones</h3>
+   <div class="two"><button id="undo">Deshacer</button><button id="clr">Borrar todo</button></div>
+   <button class="pri" id="snap" style="width:100%;margin-top:8px">Captura VAR (PNG)</button>
+  </div>
+  <p class="hint">Espacio: reproducir. Flechas: cuadro a cuadro. Rueda del mouse: zoom. Ctrl+Z: deshacer.</p>
+ </aside>
+</main>
+<input type="file" id="file" accept="video/mp4,video/webm,video/*" hidden>
+<video id="v" playsinline muted preload="auto"></video>
+<div id="toast" role="status"></div>
+<script>
+const $=s=>document.querySelector(s),v=$('#v'),cv=$('#cv'),x=cv.getContext('2d'),stage=$('#stage'),wrap=$('#wrap');
+const TOOLS=[
+ {id:'red',n:'Línea roja',c:'#ef4444',k:'line'},{id:'blue',n:'Línea azul',c:'#3b82f6',k:'line'},
+ {id:'circle',n:'Círculo',k:'circle'},{id:'pen',n:'Lápiz libre',k:'pen'},
+ {id:'arrow',n:'Flecha',k:'arrow'},{id:'hand',n:'Mover vista',k:'hand'}];
+let tool=TOOLS[0],shapes=[],cur=null,zoom=1,px=0,py=0,pan=null,fname='',ready=false;
+const fmt=t=>isNaN(t)?'00:00.00':String(Math.floor(t/60)).padStart(2,'0')+':'+(t%60).toFixed(2).padStart(5,'0');
+const K=()=>cv.width/1280;
+const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)};
+
+// Herramientas
+TOOLS.forEach(t=>{const b=document.createElement('button');b.className='tool';
+ b.innerHTML=`<span class="sw ${t.k=='circle'?'o':''}" style="background:${t.c||'var(--acc)'}"></span>${t.n}`;
+ b.onclick=()=>{tool=t;document.querySelectorAll('.tool').forEach(e=>e.classList.remove('on'));b.classList.add('on');
+  cv.style.cursor=t.k=='hand'?'grab':'crosshair'};
+ t.el=b;$('#tools').append(b)});
+TOOLS[0].el.classList.add('on');
+
+// Carga de video
+function load(f){if(!f||!f.type.startsWith('video/'))return toast('Elegí un archivo de video');
+ fname=f.name;$('#fname').textContent=f.name;v.src=URL.createObjectURL(f);shapes=[];resetView()}
+$('#pick').onclick=()=>$('#file').click();
+$('#file').onchange=e=>load(e.target.files[0]);
+['dragover','dragleave','drop'].forEach(ev=>stage.addEventListener(ev,e=>{e.preventDefault();
+ $('#drop').classList.toggle('over',ev=='dragover');if(ev=='drop')load(e.dataTransfer.files[0])}));
+v.onloadedmetadata=()=>{cv.width=v.videoWidth;cv.height=v.videoHeight;$('#seek').max=v.duration;$('#td').textContent=fmt(v.duration);
+ ready=true;$('#drop').hidden=true;fit()};
+function fit(){if(!ready)return;const r=stage.getBoundingClientRect(),s=Math.min(r.width/v.videoWidth,r.height/v.videoHeight);
+ wrap.style.width=v.videoWidth*s+'px';wrap.style.height=v.videoHeight*s+'px'}
+addEventListener('resize',fit);
+
+// Reproducción
+const pause=()=>{v.pause();$('#play').textContent='Reproducir'};
+$('#play').onclick=()=>{if(!ready)return;if(v.paused){v.play();$('#play').textContent='Pausar'}else pause()};
+v.onended=pause;
+const step=d=>{if(!ready)return;pause();v.currentTime=Math.min(v.duration,Math.max(0,v.currentTime+d/$('#fps').value))};
+$('#back').onclick=()=>step(-1);$('#fwd').onclick=()=>step(1);
+$('#seek').oninput=e=>{if(ready){v.currentTime=+e.target.value}};
+$('#rate').onchange=e=>v.playbackRate=+e.target.value;
+
+// Controles de trazo y vista
+$('#wid').oninput=e=>$('#wo').textContent=e.target.value+' px';
+$('#opa').oninput=e=>$('#oo').textContent=e.target.value+'%';
+function view(){wrap.style.transform=`translate(${px}px,${py}px) scale(${zoom})`;$('#zm').value=zoom;$('#zo').textContent=zoom.toFixed(1)+'x'}
+function resetView(){zoom=1;px=py=0;view()}
+$('#zm').oninput=e=>{zoom=+e.target.value;if(zoom==1)px=py=0;view()};
+$('#rz').onclick=resetView;
+stage.addEventListener('wheel',e=>{if(!ready)return;e.preventDefault();zoom=Math.min(8,Math.max(1,zoom*(e.deltaY<0?1.1:1/1.1)));if(zoom==1)px=py=0;view()},{passive:false});
+$('#undo').onclick=()=>shapes.pop();
+$('#clr').onclick=()=>shapes=[];
+
+// Dibujo
+function pos(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*cv.width/r.width,y:(e.clientY-r.top)*cv.height/r.height}}
+stage.addEventListener('pointerdown',e=>{if(!ready||e.button>0)return;stage.setPointerCapture(e.pointerId);
+ if(tool.k=='hand'){pan={x:e.clientX-px,y:e.clientY-py};cv.style.cursor='grabbing';return}
+ const p=pos(e);cur={k:tool.k,c:tool.c||$('#col').value,w:+$('#wid').value,o:$('#opa').value/100,
+  x1:p.x,y1:p.y,x2:p.x,y2:p.y,p:[p],ext:$('#ext').checked,f:$('#fill').checked}});
+stage.addEventListener('pointermove',e=>{
+ if(pan){px=e.clientX-pan.x;py=e.clientY-pan.y;view();return}
+ if(!cur)return;const p=pos(e);cur.x2=p.x;cur.y2=p.y;if(cur.k=='pen')cur.p.push(p)});
+const end=()=>{if(pan){pan=null;cv.style.cursor='grab'}
+ if(cur){const moved=Math.hypot(cur.x2-cur.x1,cur.y2-cur.y1)>2;if(moved||cur.p.length>2)shapes.push(cur);cur=null}};
+stage.addEventListener('pointerup',end);stage.addEventListener('pointercancel',end);
+
+function draw(c,s){c.save();c.strokeStyle=c.fillStyle=s.c;c.lineWidth=s.w*K();c.lineCap=c.lineJoin='round';c.globalAlpha=s.o;c.beginPath();
+ if(s.k=='pen'){s.p.forEach((p,i)=>i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));c.stroke()}
+ else if(s.k=='circle'){c.arc(s.x1,s.y1,Math.hypot(s.x2-s.x1,s.y2-s.y1),0,7);
+  if(s.f){c.globalAlpha=s.o*.3;c.fill();c.globalAlpha=s.o}c.stroke()}
+ else{let{x1,y1,x2,y2}=s;const L=Math.hypot(x2-x1,y2-y1)||1,dx=(x2-x1)/L,dy=(y2-y1)/L;
+  if(s.k=='line'&&s.ext){x1-=dx*1e4;y1-=dy*1e4;x2+=dx*1e4;y2+=dy*1e4}
+  c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();
+  if(s.k=='arrow'){const h=Math.max(14,s.w*4)*K(),a=Math.atan2(dy,dx);c.beginPath();c.moveTo(x2,y2);
+   c.lineTo(x2-h*Math.cos(a-.5),y2-h*Math.sin(a-.5));c.lineTo(x2-h*Math.cos(a+.5),y2-h*Math.sin(a+.5));c.closePath();c.fill()}}
+ c.restore()}
+
+(function loop(){x.clearRect(0,0,cv.width,cv.height);
+ if(ready){x.drawImage(v,0,0,cv.width,cv.height);
+  $('#tc').textContent=fmt(v.currentTime);if(document.activeElement!==$('#seek'))$('#seek').value=v.currentTime}
+ shapes.forEach(s=>draw(x,s));if(cur)draw(x,cur);requestAnimationFrame(loop)})();
+
+// Captura VAR
+function snap(){if(!ready)return toast('Cargá un video primero');
+ const W=cv.width,H=cv.height,b=Math.round(H*.07),o=document.createElement('canvas');o.width=W;o.height=H+b;
+ const c=o.getContext('2d');c.drawImage(v,0,0,W,H);shapes.forEach(s=>draw(c,s));
+ c.fillStyle='#0e1522';c.fillRect(0,H,W,b);c.fillStyle='#4cc9f0';c.fillRect(0,H,b*.2,b);
+ c.fillStyle='#e8edf6';c.textBaseline='middle';c.font=`700 ${b*.5}px 'Barlow Condensed','Arial Narrow',sans-serif`;
+ c.fillText('HaxVAR  Revisión de jugada',b*.5,H+b/2);c.textAlign='right';c.fillText(fmt(v.currentTime),W-b*.4,H+b/2);
+ o.toBlob(bl=>{const a=document.createElement('a');a.href=URL.createObjectURL(bl);
+  a.download='haxvar_'+fmt(v.currentTime).replace(':','-')+'.png';a.click();toast('Captura VAR guardada')},'image/png')}
+$('#snap').onclick=snap;
+
+addEventListener('keydown',e=>{if(['INPUT','SELECT'].includes(e.target.tagName)&&e.target.type!='checkbox'&&e.target.type!='range')return;
+ if(e.target.tagName=='INPUT'&&e.target.type=='range'&&e.key.startsWith('Arrow'))return;
+ if(e.code=='Space'){e.preventDefault();document.activeElement.blur();$('#play').click()}
+ else if(e.key=='ArrowLeft')step(-1);else if(e.key=='ArrowRight')step(1);
+ else if((e.ctrlKey||e.metaKey)&&e.key=='z'){e.preventDefault();shapes.pop()}});
+</script>
+</body>
+</html>
